@@ -1,0 +1,2 @@
+connect 'jdbc:derby:metastore;create=true';
+run 'derby_hive_3.2.0.sql';

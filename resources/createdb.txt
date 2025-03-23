@@ -1,0 +1,6 @@
+#
+# run from here
+#   this will create the db with the embedded driver (no server needed)
+#   after this succeeds, run the networkserver
+#
+{DIRECTORY_OF_DERBY}/bin/ij derby_ij_script.txt

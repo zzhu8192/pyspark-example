@@ -1,0 +1,21 @@
+# poetry
+poetry.lock
+requirements.txt
+derby.log
+
+# distribution 
+spark-warehouse/
+metastore_db/
+dist/
+target/
+
+# IDEA
+.idea/*
+
+# byte-compiled
+**/__pycache__/
+
+# generated files
+py4j/**
+out/**
+share/**
