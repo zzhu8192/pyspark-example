@@ -1,4 +1,8 @@
 import logging
+import json
+from pathlib import Path
+import time
+from filelock import FileLock
 import os
 import shutil
 import sys
@@ -51,67 +55,68 @@ def logger() -> Generator[logging.Logger, None, None]:
     logger = logging.getLogger()
     yield logger
 
-
+CONNECT_URL = os.getenv("SPARK_CONNECT_URL", "sc://localhost:15002")
 @pytest.fixture(scope="session")
-def spark() -> Generator[SparkSession, None, None]:
+def spark() -> SparkSession:
     """Create a single Spark session for all tests to improve performance."""
     print("Creating Spark session at date: ", datetime.now())
     # Create a single SparkSession with all necessary configurations
     spark = (
         SparkSession.builder.appName("UnitTest")
-        .master("local[2]")
-        .config("spark.sql.warehouse.dir", "tmp/spark-warehouse")
-        .config("spark.sql.adaptive.enabled", "false")
-        .config("spark.ui.enabled", "false")
-        .config("spark.ui.showConsoleProgress", "false")
-        .config("spark.driver.bindAddress", "127.0.0.1")
-        .config("spark.driver.memory", "2g")
-        .config("spark.executor.memory", "2g")
-        .config("spark.driver.host", "localhost")
-        .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-        .config("spark.kryo.unsafe", "true")
-        .config("spark.kryoserializer.buffer", "64k")
-        .config("spark.serializer.objectStreamReset", "-1")
-        .config("spark.broadcast.compress", "true")
-        .config("spark.rdd.compress", "true")
-        .config("spark.shuffle.compress", "true")
+#        .master("local[2]")
+ #       .config("spark.sql.warehouse.dir", "tmp/spark-warehouse")
+ #       .config("spark.sql.adaptive.enabled", "false")
+ #       .config("spark.ui.enabled", "false")
+ #       .config("spark.ui.showConsoleProgress", "false")
+ #       .config("spark.driver.bindAddress", "127.0.0.1")
+ #       .config("spark.driver.memory", "2g")
+ #       .config("spark.executor.memory", "2g")
+ #       .config("spark.driver.host", "localhost")
+ #       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+ #       .config("spark.kryo.unsafe", "true")
+ #       .config("spark.kryoserializer.buffer", "64k")
+ #       .config("spark.serializer.objectStreamReset", "-1")
+#        .config("spark.broadcast.compress", "true")
+#        .config("spark.rdd.compress", "true")
+#        .config("spark.shuffle.compress", "true")
         # spark sql tweaks
-        .config("spark.sql.inMemoryColumnarStorage.compressed", "true")
-        .config("spark.sql.orc.compression.codec", "zstd")
-        .config("spark.sql.shuffle.partitions", "2")
-        .config("spark.sql.optimizer.maxIterations", "5")
-        .config("spark.sql.parquet.compression.codec", "zstd")
+#        .config("spark.sql.inMemoryColumnarStorage.compressed", "true")
+#        .config("spark.sql.orc.compression.codec", "zstd")
+#        .config("spark.sql.shuffle.partitions", "2")
+#        .config("spark.sql.optimizer.maxIterations", "5")
+#        .config("spark.sql.parquet.compression.codec", "zstd")
         # enable delta support
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-        .config(
-            "spark.sql.catalog.spark_catalog",
-            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-        )
-        .config("spark.jars.packages", "io.delta:delta-spark_2.13:4.0.0")
-        .config("spark.databricks.delta.retentionDurationCheck.enabled", "false")
+#        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+#        .config(
+#            "spark.sql.catalog.spark_catalog",
+#            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+#        )
+#        .config("spark.jars.packages", "io.delta:delta-spark_2.13:4.0.0")
+#        .config("spark.databricks.delta.retentionDurationCheck.enabled", "false")
         # delta operations won't work locally without this setting
-        .config("spark.sql.sources.useV1SourceList", "avro,csv,json,kafka,orc,parquet,text,delta")
+#        .config("spark.sql.sources.useV1SourceList", "avro,csv,json,kafka,orc,parquet,text,delta")
         # delta specific optimizations for tests
-        .config("spark.databricks.delta.autoCompact.enabled", "false")
-        .config("spark.databricks.delta.optimizeWrite.enabled", "false")
-        .config("spark.databricks.delta.logRetentionDuration", "0 days")
-        .config("spark.databricks.delta.deletedFileRetention", "0 days")
-        .config("spark.databricks.io.cache.enabled", "false")
-        .config("spark.databricks.delta.snapshotPartitions", "1")
-        .config("spark.sql.sources.parallelPartitionDiscovery.parallelism", "4")
-        .enableHiveSupport()
+#        .config("spark.databricks.delta.autoCompact.enabled", "false")
+#        .config("spark.databricks.delta.optimizeWrite.enabled", "false")
+#        .config("spark.databricks.delta.logRetentionDuration", "0 days")
+#        .config("spark.databricks.delta.deletedFileRetention", "0 days")
+#        .config("spark.databricks.io.cache.enabled", "false")
+ #       .config("spark.databricks.delta.snapshotPartitions", "1")
+ #       .config("spark.sql.sources.parallelPartitionDiscovery.parallelism", "4")
+#        .enableHiveSupport()
+	# spark connect
+        .remote(CONNECT_URL)
         .getOrCreate()
     )
 
     # Set log levels
-    spark.sparkContext.setLogLevel("WARN")
+    #spark.sparkContext.setLogLevel("WARN")
     logging.getLogger("py4j").setLevel(logging.ERROR)
     logging.getLogger("org.apache").setLevel(logging.ERROR)
 
-    yield spark
+    return spark
 
-    # Clean up at the end of all tests
-    spark.stop()
+
 
 @pytest.fixture(scope="session")
 def logger() -> Generator[logging.Logger, None, None]:
