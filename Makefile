@@ -17,5 +17,6 @@ clean:
 	@rm -rf dist/ *.egg-info/ uv.lock .venv/ build/
 
 test:
-	uv pip install --group test
+	uv pip install --group test 
 	uv run pytest
+# -n auto

@@ -1,11 +1,10 @@
 README.md
 pyproject.toml
+src/etl/main.py
 src/etl.egg-info/PKG-INFO
 src/etl.egg-info/SOURCES.txt
 src/etl.egg-info/dependency_links.txt
 src/etl.egg-info/entry_points.txt
 src/etl.egg-info/requires.txt
 src/etl.egg-info/top_level.txt
-src/jobs/__init__.py
-src/jobs/example_job.py
-tests/test_etl_test.py
+src/etl/jobs/example_job.py
