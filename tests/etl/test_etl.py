@@ -64,7 +64,7 @@ def test_hive(spark: SparkSession):
     df = csvStringToDf(spark, csv, "|")
     df.show()
     df.createOrReplaceTempView("test_hive")
-    spark.sql("DROP DATABASE IF EXISTS unit_test")
+    spark.sql("DROP DATABASE IF EXISTS unit_test CASCADE")
     spark.sql("CREATE DATABASE IF NOT EXISTS unit_test")
     spark.sql("DROP TABLE IF  EXISTS unit_test.test_hive")
 
