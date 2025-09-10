@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "etl"
+description = ""
+authors = [
+    { name = "Zheng Zhu", email = "zzhu@r1rcm.com" }
+]
+requires-python = ">=3.12"
+readme = "README.md"
+# see setup.py
+dynamic = ["version"]
+dependencies = [
+    "pydantic>=2.10.6", 
+    "rich>=14.0.0", 
+    "python-dotenv>=1.1.1"
+]
+
+[dependency-groups]
+test = [
+    "delta-spark>=3.3.2", 
+    "pyspark>=4.0.1",
+    "pytest>=8.4.2",
+    "pytest-xdist>=3.8.0",
+    "databricks-sdk==0.1.6"
+]
+
+[project.scripts]
+main = "etl.main:main"
+
+[project.entry-points.packages]
+main = "etl.main:main"
+
+[tool.uv]
+package = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+main = [
+    "resources/**/*"
+]
+
+[tool.pyright]
+include = ["src", "tests"]
+exclude = ["**/__pycache__", "**/.venv"]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+reportMissingImports = false
+reportMissingTypeStubs = false
+reportOptionalMemberAccess = true
+
+[tool.pytest.ini_options]
+log_level = "WARNING"
+log_cli_level = "WARNING"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = ["-v", "--tb=short"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+line_length = 88
