@@ -19,3 +19,4 @@ target/
 py4j/**
 out/**
 share/**
+.aider*
