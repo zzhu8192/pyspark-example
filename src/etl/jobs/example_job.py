@@ -14,17 +14,32 @@ def do_transform_with_api(spark: SparkSession, df: DataFrame) -> DataFrame:
 
 def pyspark_example_etl(spark: SparkSession, src_path: str, target_path: str, hive_db: str, hive_table: str):
     print(f"-------------- doETL() reading csv {src_path} {target_path}")
-    df = (spark.read.format("csv").option("header", "true")
+    
+    # Read CSV with proper configuration
+    df = (spark.read.format("csv")
+          .option("header", "true")
           .option("inferSchema", "false")
           .option("delimiter", "|")
-          .option("treatEmptyValuesAsNulls", True)  # allows empty fields to be null and "" to be empty string.
+          .option("treatEmptyValuesAsNulls", True)
           .option("nullValue", "__NULL__")
           .option("quote", "\"")
-          .option("escape", "\\").load(src_path))
+          .option("escape", "\\")
+          .load(src_path))
+    
     df.show()
-    resultDf=do_transform_with_api(spark, df)
-    resultDf.show()
+    
+    # Apply transformation
+    result_df = do_transform_with_api(spark, df)
+    result_df.show()
+    
+    # Create database and write data
     spark.sql(f"CREATE DATABASE IF NOT EXISTS {hive_db}")
-    resultDf.coalesce(1).write.mode("overwrite").format("parquet").option("compression", "gzip").option('path', target_path).saveAsTable(f"{hive_db}.{hive_table}")
+    
+    # Write to Hive table with proper path handling
+    result_df.coalesce(1).write \
+        .mode("overwrite") \
+        .format("parquet") \
+        .option("compression", "gzip") \
+        .saveAsTable(f"{hive_db}.{hive_table}")
 
 
