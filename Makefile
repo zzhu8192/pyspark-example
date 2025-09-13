@@ -18,4 +18,5 @@ clean:
 
 test:
 	uv pip install --group test 
-	uv run pytest -v -n auto
+	uv run pytest -v
+# -n auto

@@ -63,22 +63,22 @@ def spark() -> SparkSession:
     # Create a single SparkSession with all necessary configurations
     spark = (
         SparkSession.builder.appName("UnitTest")
-#        .master("local[2]")
- #       .config("spark.sql.warehouse.dir", "tmp/spark-warehouse")
- #       .config("spark.sql.adaptive.enabled", "false")
- #       .config("spark.ui.enabled", "false")
- #       .config("spark.ui.showConsoleProgress", "false")
- #       .config("spark.driver.bindAddress", "127.0.0.1")
- #       .config("spark.driver.memory", "2g")
- #       .config("spark.executor.memory", "2g")
- #       .config("spark.driver.host", "localhost")
- #       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
- #       .config("spark.kryo.unsafe", "true")
- #       .config("spark.kryoserializer.buffer", "64k")
- #       .config("spark.serializer.objectStreamReset", "-1")
-#        .config("spark.broadcast.compress", "true")
-#        .config("spark.rdd.compress", "true")
-#        .config("spark.shuffle.compress", "true")
+        .master("local[2]")
+        .config("spark.sql.warehouse.dir", "tmp/spark-warehouse")
+        .config("spark.sql.adaptive.enabled", "false")
+        .config("spark.ui.enabled", "false")
+        .config("spark.ui.showConsoleProgress", "false")
+        .config("spark.driver.bindAddress", "127.0.0.1")
+        .config("spark.driver.memory", "2g")
+        .config("spark.executor.memory", "2g")
+        .config("spark.driver.host", "localhost")
+        .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        .config("spark.kryo.unsafe", "true")
+        .config("spark.kryoserializer.buffer", "64k")
+        .config("spark.serializer.objectStreamReset", "-1")
+        .config("spark.broadcast.compress", "true")
+        .config("spark.rdd.compress", "true")
+        .config("spark.shuffle.compress", "true")
         # spark sql tweaks
 #        .config("spark.sql.inMemoryColumnarStorage.compressed", "true")
 #        .config("spark.sql.orc.compression.codec", "zstd")
@@ -86,11 +86,11 @@ def spark() -> SparkSession:
 #        .config("spark.sql.optimizer.maxIterations", "5")
 #        .config("spark.sql.parquet.compression.codec", "zstd")
         # enable delta support
-#        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-#        .config(
-#            "spark.sql.catalog.spark_catalog",
-#            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
-#        )
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config(
+            "spark.sql.catalog.spark_catalog",
+            "org.apache.spark.sql.delta.catalog.DeltaCatalog",
+        )
 #        .config("spark.jars.packages", "io.delta:delta-spark_2.13:4.0.0")
 #        .config("spark.databricks.delta.retentionDurationCheck.enabled", "false")
         # delta operations won't work locally without this setting
@@ -103,9 +103,9 @@ def spark() -> SparkSession:
 #        .config("spark.databricks.io.cache.enabled", "false")
  #       .config("spark.databricks.delta.snapshotPartitions", "1")
  #       .config("spark.sql.sources.parallelPartitionDiscovery.parallelism", "4")
-#        .enableHiveSupport()
+        .enableHiveSupport()
 	# spark connect
-        .remote(CONNECT_URL)
+#        .remote(CONNECT_URL)
         .getOrCreate()
     )
 
