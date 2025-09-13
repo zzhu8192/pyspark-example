@@ -20,3 +20,5 @@ py4j/**
 out/**
 share/**
 .aider*
+uv.lock
+

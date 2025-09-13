@@ -1,7 +1,7 @@
 Metadata-Version: 2.4
 Name: etl
 Version: 0.0.0
-Author-email: Zheng Zhu <zzhu@r1rcm.com>
+Author-email: Zheng Zhu <zzhu8192@gmail.com>
 Requires-Python: >=3.12
 Description-Content-Type: text/markdown
 Requires-Dist: pydantic>=2.10.6
