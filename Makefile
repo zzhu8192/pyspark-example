@@ -1,22 +1,12 @@
-.PHONY: build clean deploy run
+.PHONY: build clean test run
 
 build:
 	uv sync
 	uv build --refresh --wheel
 
 clean:
-	@if [ -n "$$VIRTUAL_ENV" ]; then \
-		echo "Deactivating virtual environment..."; \
-		deactivate 2>/dev/null || true; \
-	fi
-	@if [ -d ".venv" ]; then \
-		echo "Cleaning uv cache and dependencies..."; \
-		uv clean; \
-	fi
-	@echo "Removing build artifacts..."
-	@rm -rf dist/ *.egg-info/ uv.lock .venv/ build/
+	@echo "Removing build and test artifacts..."
+	@rm -rf dist/ build/ *.egg-info/ src/*.egg-info/ .pytest_cache/ .venv/ target/ tmp/ metastore_db/ derby.log spark-warehouse/
 
 test:
-	uv pip install --group test 
-	uv run pytest -v
-# -n auto
+	uv run --group test pytest -v

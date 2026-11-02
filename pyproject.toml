@@ -4,38 +4,35 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "etl"
-description = ""
+version = "0.1.0"
+description = "Example PySpark 4.x project skeleton with Delta Lake 4.2.x, Click CLI, and Pytest fixtures"
+readme = "README.md"
+license = { text = "Apache-2.0" }
 authors = [
     { name = "Zheng Zhu", email = "zzhu8192@gmail.com" }
 ]
-requires-python = ">=3.12"
-readme = "README.md"
-# see setup.py
-dynamic = ["version"]
+requires-python = ">=3.10"
 dependencies = [
-    "pydantic>=2.10.6", 
-    "rich>=14.0.0", 
+    "click>=8.1.7",
+    "pydantic>=2.10.6",
+    "rich>=14.0.0",
     "python-dotenv>=1.1.1"
 ]
 
 [dependency-groups]
 test = [
-    "delta-spark>=4.0.0", 
+    "delta-spark>=4.2.0",
     "pyspark>=4.0.1",
-    "pytest>=8.4.2",
-    "pytest-xdist>=3.8.0",
-    "filelock==3.12.0",
-    "databricks-sdk==0.1.6",
-    "pandas>=2.3.2",
-    "pyarrow>=21.0.0",
-    "grpcio>=1.74.0",
-    "grpcio-status>=1.74.0"
+    "pytest>=8.0.0",
+    "pytest-xdist>=3.6.0",
+    "filelock>=3.12.0",
+    "pandas>=2.2.0,<3.0.0",
+    "pyarrow>=15.0.0",
+    "grpcio>=1.62.0",
+    "grpcio-status>=1.62.0"
 ]
 
 [project.scripts]
-main = "etl.main:main"
-
-[project.entry-points.packages]
 main = "etl.main:main"
 
 [tool.uv]
