@@ -1,0 +1,36 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+#
+
+# ============================================================================
+# Spark SQL & Catalog Configuration
+# ============================================================================
+spark.sql.catalogImplementation             hive
+spark.sql.adaptive.enabled                  true
+spark.sql.parquet.compression.codec         gzip
+
+# Local warehouse directory (adjust path as needed)
+spark.sql.warehouse.dir                     /tmp/hive-warehouse
+
+# ============================================================================
+# Delta Lake Integration
+# ============================================================================
+spark.sql.extensions                        io.delta.sql.DeltaSparkSessionExtension
+spark.sql.catalog.spark_catalog             org.apache.spark.sql.delta.catalog.DeltaCatalog
+
+# ============================================================================
+# Remote Hive Metastore (Optional)
+# ============================================================================
+# If using a remote Hive Metastore Thrift service (e.g. via SSH tunnel or central server):
+# spark.hadoop.hive.metastore.uris          thrift://localhost:9083
+# spark.sql.warehouse.dir                   gs://your-bucket-name/hive-warehouse
+
+# ============================================================================
+# Cloud Storage: Google Cloud Storage (GCS) (Optional)
+# ============================================================================
+# spark.hadoop.fs.AbstractFileSystem.gs.impl  com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS
+# spark.hadoop.fs.gs.project.id             your-gcp-project-id
+# spark.hadoop.google.cloud.auth.service.account.enable true
+# spark.hadoop.google.cloud.auth.service.account.json.keyfile /path/to/service-account.json
