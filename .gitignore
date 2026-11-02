@@ -1,24 +1,43 @@
-# poetry
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+src/*.egg-info/
+.eggs/
+
+# Virtual environments & package managers
+.venv/
+venv/
+ENV/
+uv.lock
 poetry.lock
 requirements.txt
-derby.log
 
-# distribution 
+# Testing & type checking
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.pytype/
+
+# Spark & Hive runtime artifacts
 spark-warehouse/
 metastore_db/
-dist/
+derby.log
+*.log
+tmp/
 target/
 
-# IDEA
-.idea/*
+# IDE & editors
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# byte-compiled
-**/__pycache__/
-
-# generated files
-py4j/**
-out/**
-share/**
+# AI / assistant logs
 .aider*
-uv.lock
-

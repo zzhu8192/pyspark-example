@@ -1,5 +1,0 @@
-[console_scripts]
-main = etl.main:main
-
-[packages]
-main = etl.main:main
