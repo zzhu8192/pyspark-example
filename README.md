@@ -1,92 +1,451 @@
-## spark-job-with-testing-example
+# PySpark 4.x Example Project
 
-Spark example project (Spark 3.x / Scala / Java 17)
+[![CI](https://github.com/zzhu8192/pyspark-example/actions/workflows/ci.yml/badge.svg)](https://github.com/zzhu8192/pyspark-example/actions/workflows/ci.yml)
+[![Python 3.12](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![PySpark 4.2.x](https://img.shields.io/badge/PySpark-4.2.x-orange.svg)](https://spark.apache.org/)
+[![Delta Lake 4.2.0+](https://img.shields.io/badge/Delta%20Lake-4.2.0%2B-00ADD8.svg)](https://delta.io/)
+[![Java 21](https://img.shields.io/badge/Java-21%20LTS-red.svg)](https://adoptium.net/)
+[![uv](https://img.shields.io/badge/managed%20by-uv-DE5FE9.svg)](https://astral.sh/uv)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
-### Table of Contents
+A production-ready project template for **PySpark 4.x** ETL pipelines featuring **Delta Lake 4.2.x**, **Click CLI**, **Pytest** testing fixtures, remote **Apache Derby Hive Metastore** configuration, and rapid environment management using **[uv](https://docs.astral.sh/uv/)**.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
 - [System Requirements](#system-requirements)
-- [Installation](#installation)
-- [How to Run/Debug this project](#run-debug)
+- [Prerequisites & Installation](#prerequisites--installation)
+- [Delta Lake Integration Guide](#delta-lake-integration-guide)
+- [Hive Metastore with Remote Derby Setup](#hive-metastore-with-remote-derby-setup)
+- [Quick Start](#quick-start)
+- [Running the Application](#running-the-application)
+- [Running & Debugging in IDEs](#running--debugging-in-ides)
+- [Troubleshooting & Common Errors](#troubleshooting--common-errors)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
-### System Requirements
-In general, Spark is going to be both CPU and memory bound.  This is both true for running the job via spark-submit, or running Scala unit tests.   Also, the Scala compiler is a beast in terms of CPU and memory hog.  The Intellij IDEA is also memory and CPU intensive.  As such, the more cores and more memory you have, the better off your development experience will be:
-- Ideal:  **32 GB RAM,  8+ cores / 16T SSD**
-- Medium: **16 GB RAM,  4 cores / 8T, SSD**
-- Masochist:   8 GB RAM, 4 cores  <- this is highly unlikely to run or compile
+---
 
- You need the following tools (IDE), runtimes, and or libraries. 
-- Some distribution of Java 17 SDK runtime.  
-- Intellij IDEA Community Edition (You do **NOT** need Enterprise edition)
-- Spark 3.3.1 binary distribution (compiled for Hadoop 3.3 and with Scala 2.13)
-- Hadoop Winutils binary for Spark 3.3.1 (windows only)
-- *Optional*   Zeppelin 0.10.1 or Jupyter (for interactive testing of Spark using Scala)
+## Overview
 
-### Installation
-Follow instructions on this page (but please see Java 8 SDK installation instructions below first, or you may be violating Oracle licensing agreements)
+Setting up PySpark 4.x with Delta Lake and Hive metastore integration often presents several common challenges:
+- **Dependency Conflicts**: Delta Lake wheel packages on PyPI declare strict upper bounds on PySpark versions.
+- **Delta Parser Wiring**: Missing SQL extension registration prevents Spark from recognizing Delta commands (`USING delta`, `MERGE INTO`, `VACUUM`).
+- **Hive Metastore Locks**: By default, embedded Derby locks the local database (`metastore_db/`), preventing multiple test processes, shells, or notebooks from running concurrently.
+- **Java 21 Module Encapsulation**: Modern Java versions require explicit `--add-opens` JVM flags for Spark reflection and memory management.
 
-1. Install Java 17 SDK - I recommend using the zip packages in the Java 17 (LTS) section from Oracle
-1. unzip java8sdk.zip into folder of your choice:  e.g.  **c:\jdk8** OR install from DMG if you're on MacOS
-1. add SYSTEM ENV variable **JAVA_HOME=c:\jdk8**  (or full path to where you installed/unzipped this)
-1. add **c:\jdk8\bin**  to your PATH
-1. To test your installation, open new cmd prompt,
-    run: **java -version**   
-    You should see JVM runtime information
+This skeleton project provides a **clean, structured foundation** resolving these challenges so you can immediately build, test, and package robust PySpark pipelines.
 
-### Spark 3.3.1
-1.  Goto **https://spark.apache.org/downloads.html**
-1.  Choose Pre-built for Apache Hadoop 3.3 and Scala 2.13
-1.  Download **spark-3.2.2-bin-hadoop3.2.tgz**   
-1.  untar (using cmdline tar xvf) somewhere on your drive.  It will create a folder called: **spark-3.2.2-bin-hadoop3.3\**
-1.  you can rename this folder to be something shorter if you wish
-1.  add SYSTEM ENV variable **SPARK_HOME=** directory where you put this
-1.  add SYSTEM ENV variable **HADOOP_HOME=** directory where you put this
-1.  add **(base folder)\spark-3.2.2-bin-hadoop3.3\bin** to your PATH
-1.  To test your installation, open new cmd prompt, 
-1.  modify your conf/spark-defaults.conf to include **spark.driver.memory 12g**
-   run: **spark-shell**   
-   You should get a spark shell interpreter running
+---
 
-### If on Windows, you'll also need Hadoop Winutils binaries
-1.  I recommend using files from here: https://github.com/cdarlint/winutils 
-1.  unzip to c:\hadoop (or folder of your choice)
-1.  copy the winutils.exe from this bin folder to your **spark\bin**  directory
+## Key Features
 
+- **PySpark 4.x & Delta Lake**: Pre-configured for Spark 4.2.x and Delta Lake 4.2.0+.
+- **CLI Architecture with Click**: Modular command-line interface in [`src/etl/main.py`](src/etl/main.py) with typed parameters.
+- **Shared Pytest Fixtures**: Session-scoped SparkSession in [`tests/etl/conftest.py`](tests/etl/conftest.py) with automated cache cleanup and isolated temporary catalogs.
+- **Sample Spark & Hive Configurations**: Ready-to-use template files in [`conf/`](conf/) and [`resources/`](resources/):
+  - [`conf/spark-defaults.conf.template`](conf/spark-defaults.conf.template): Delta catalog, SQL extensions, and adaptive query execution.
+  - [`conf/core-site.xml.template`](conf/core-site.xml.template): Remote Derby Network Server connection for concurrent multi-process access.
+  - [`resources/derby_hive_3.2.0.sql`](resources/derby_hive_3.2.0.sql): Schema definition script for initializing Hive metastore tables in Derby.
+- **Fast Package Management**: Managed with [`uv`](https://docs.astral.sh/uv/) for lightning-fast dependency resolution and virtual environments.
+- **Cross-Platform Execution**: Includes `./run.sh` for Linux/macOS and `run.bat` for Windows.
 
-### Zeppelin installation
-1.  Goto https://zeppelin.apache.org/download.html
-1.  Follow instructions on website for download, unzip, and run.  Running a docker container might be a good idea
+---
 
-### Build
+## Tech Stack
 
-Either use Intellij IDEA with scala support (import maven project)
+| Component | Version | Notes |
+|:---|:---|:---|
+| **Python** | 3.10 - 3.12 | Python 3.12 recommended |
+| **Java** | 21 (LTS) | Required by Apache Spark 4.x runtime |
+| **PySpark** | 4.2.x (4.2.0 / 4.2.1) | Distributed DataFrame engine |
+| **Delta Lake** | 4.2.0+ (4.2.0 / 4.4.1) | ACID transactions and time travel |
+| **Click** | 8.1+ | CLI command parsing |
+| **Pytest & pytest-xdist** | 8.x / 3.x | Unit testing framework |
+| **Package Manager** | uv | Fast Python packaging and runner |
 
-OR
+---
 
-install maven 3.8.6+  (download zip from: https://maven.apache.org/ref/3.8.6/download.cgi , put the resulting maven/bin/ folder in PATH so mvn will be executable in cmdline)
+## System Requirements
 
+Running PySpark jobs locally and executing tests requires adequate CPU and memory:
 
-### Build and run on cmdline
+| Tier | RAM | CPU Cores | Storage | Experience |
+|:---|:---|:---|:---|:---|
+| **Recommended** | 16 GB - 32 GB | 8+ cores / 16 threads | SSD | Fast JVM startup, smooth test execution |
+| **Minimum** | 8 GB - 16 GB | 4 cores / 8 threads | SSD | Functional for local development |
+| **Not Recommended** | < 8 GB | 2 cores | HDD | Prone to OutOfMemory errors and slow JVM initialization |
 
-mvn package
+---
 
-This will do a mvn package which:
-1. compiles scala source code
-2. runs unit tests
-3. builds jar including 3rd party dependencies in target/
-4. clean out output directory, and
+## Prerequisites & Installation
 
+### 1. Java 21 (LTS)
+PySpark 4.x runs atop the JVM. Install OpenJDK 21 (such as [Eclipse Temurin](https://adoptium.net/)):
+- **Linux (Ubuntu/Debian)**:
+  ```bash
+  sudo apt update && sudo apt install -y openjdk-21-jdk
+  ```
+- **macOS (Homebrew)**:
+  ```bash
+  brew install openjdk@21
+  ```
+- **Windows**: Download installer from Adoptium. Set `JAVA_HOME` and add `%JAVA_HOME%\bin` to `PATH`.
 
-### Debug
+Verify:
+```bash
+java -version
+```
 
-Use Intellij IDEA's Debugger
-Make sure to check the option in (Run Configurations):
+### 2. uv Package Manager
+Install `uv` (recommended for fastest setup):
+```bash
+# Linux / macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-**"Include Dependencies with Provided Scope"**
+# Windows (PowerShell)
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
 
-The maven build pom.xml has all Scala and Spark dependencies declared as "provided", which makes resulting binary super lean and small, but this means when you debug, you have to tell the IDE to included it from elsewhere.
+Verify:
+```bash
+uv --version
+```
 
+### 3. Windows Hadoop Winutils (Windows Only)
+On Windows, Hadoop file operations require native binaries:
+1. Download Hadoop 3.3/3.4 compatible binaries from [cdarlint/winutils](https://github.com/cdarlint/winutils).
+2. Set `HADOOP_HOME=C:\hadoop` where `C:\hadoop\bin\winutils.exe` exists.
+3. Add `%HADOOP_HOME%\bin` to system `PATH`.
 
+---
 
+## Delta Lake Integration Guide
 
-### More Resources
-- https://spark.apache.org/docs/latest/quick-start.html
-- https://databricks.com/spark/about
+Integrating Delta Lake with PySpark requires **both** runtime JARs and Spark SQL configurations.
+
+### 1. Understanding PyPI vs. Cluster JAR Dependencies
+- **In Python / uv**: The `delta-spark` package from PyPI installs Python bindings and bundles the Delta Lake Java JARs for local execution.
+  > [!NOTE]
+  > On PyPI, `delta-spark` wheel releases declare strict dependency bounds on `pyspark`:
+  > - `delta-spark==4.2.0` specifies `pyspark<=4.1.1,>=4.0.1`.
+  > - `delta-spark==4.4.1` specifies `pyspark<=4.2.0,>=4.0.1`.
+  > 
+  > This project's [`pyproject.toml`](pyproject.toml) configures `"delta-spark>=4.2.0"` and `"pyspark>=4.0.1"`, allowing `uv` to automatically resolve compatible versions.
+- **For `spark-submit` / Cluster Runs**: When running through an external `spark-submit`, Spark does not bundle Delta Lake by default. You must either:
+  - Pass `--packages io.delta:delta-spark_2.13:4.2.0`
+  - Or place `delta-spark_2.13-4.2.0.jar` and `delta-storage-4.2.0.jar` in `$SPARK_HOME/jars/`.
+
+### 2. Spark SQL Configuration
+
+Spark must be configured to enable Delta SQL extensions and delegate catalog operations:
+
+- **In `conf/spark-defaults.conf` (System-wide)**:
+  ```properties
+  spark.sql.extensions               io.delta.sql.DeltaSparkSessionExtension
+  spark.sql.catalog.spark_catalog    org.apache.spark.sql.delta.catalog.DeltaCatalog
+  ```
+- **In Python Code (`SparkSession.builder`)**:
+  ```python
+  from pyspark.sql import SparkSession
+
+  spark = (SparkSession.builder
+      .appName("DeltaApp")
+      .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+      .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+      .getOrCreate())
+  ```
+- **In CLI (`spark-submit`)**:
+  ```bash
+  spark-submit \
+    --packages io.delta:delta-spark_2.13:4.2.0 \
+    --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" \
+    --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" \
+    src/etl/main.py ...
+  ```
+
+---
+
+## Hive Metastore with Remote Derby Setup
+
+### Why Use a Remote Derby Network Server?
+
+By default, Spark uses an **embedded Apache Derby instance** for its local Hive metastore. Embedded Derby writes to `./metastore_db/` and places an exclusive lock (`db.lck`).
+
+**The Problem**: Only **one process** can access embedded Derby at a time. If you run a test suite, notebook, or second job simultaneously, it immediately crashes with:
+```
+ERROR XSDB6: Another instance of Derby may have already booted the database /.../metastore_db
+```
+
+**The Solution**: Run Apache Derby as a **locally hosted Network Server** (remoting enabled on port `1527`). Multiple Spark jobs, CLI shells, and unit test runners can connect over TCP concurrently without file lock collisions.
+
+### Required Driver: `derbyclient.jar`
+
+- Embedded Derby uses `derby.jar` (`org.apache.derby.jdbc.EmbeddedDriver`), which ships with standard Spark distributions.
+- Remote Derby requires `org.apache.derby.jdbc.ClientDriver`, located in **`derbyclient.jar`**.
+- Standard Spark distributions **do not include `derbyclient.jar`**. Download `derbyclient-10.16.1.1.jar` from Maven Central and place it into `$SPARK_HOME/jars/`:
+  ```bash
+  curl -o "$SPARK_HOME/jars/derbyclient-10.16.1.1.jar" \
+    https://repo1.maven.org/maven2/org/apache/derby/derbyclient/10.16.1.1/derbyclient-10.16.1.1.jar
+  ```
+
+### Metastore Schema Initialization
+
+Before starting the server, initialize the Hive metastore tables in Derby using Derby's `ij` tool and the included scripts in [`resources/`](resources/):
+
+1. Edit [`resources/derby_ij_script.txt`](resources/derby_ij_script.txt):
+   ```sql
+   connect 'jdbc:derby:metastore;create=true';
+   run 'derby_hive_3.2.0.sql';
+   ```
+2. Execute with Derby `ij`:
+   ```bash
+   cd resources
+   $DERBY_HOME/bin/ij derby_ij_script.txt
+   ```
+   This creates the database schema defined in [`resources/derby_hive_3.2.0.sql`](resources/derby_hive_3.2.0.sql).
+
+### Configuration Files
+
+Copy the provided templates to your Spark configuration directory:
+
+#### 1. [`conf/core-site.xml.template`](conf/core-site.xml.template)
+Copy to `$SPARK_HOME/conf/core-site.xml`:
+```xml
+<configuration>
+    <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:derby://127.0.0.1:1527/metastore;create=true</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.apache.derby.jdbc.ClientDriver</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>APP</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>mine</value>
+    </property>
+</configuration>
+```
+
+#### 2. [`conf/spark-defaults.conf.template`](conf/spark-defaults.conf.template)
+Copy to `$SPARK_HOME/conf/spark-defaults.conf`:
+```properties
+spark.sql.catalogImplementation  hive
+spark.sql.warehouse.dir          /tmp/hive-warehouse
+```
+
+### Starting the Derby Network Server
+
+Start the server before launching Spark:
+```bash
+# Linux / macOS
+$DERBY_HOME/bin/startNetworkServer -h 127.0.0.1 -p 1527
+
+# Or via Java:
+java -classpath "/usr/local/derby/lib/*" org.apache.derby.drda.NetworkServerControl start -h 127.0.0.1 -p 1527
+```
+
+Verify connection:
+```bash
+ss -tlpn | grep 1527
+```
+
+---
+
+## Quick Start
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/zzhu8192/pyspark-example.git
+cd pyspark-example
+```
+
+### 2. Install Dependencies
+```bash
+uv sync --group test
+```
+
+### 3. Run Unit Tests
+```bash
+uv run --group test pytest -v
+```
+Or with `make`:
+```bash
+make test
+```
+
+### 4. Build Wheel Package
+```bash
+uv build --wheel
+```
+
+---
+
+## Running the Application
+
+### Using the Included Helper Scripts
+
+#### Linux / macOS
+```bash
+./run.sh
+```
+
+#### Windows
+```cmd
+run.bat
+```
+
+The script executes the ETL pipeline against [`example/test.csv`](example/test.csv) and writes output to temporary storage.
+
+### Using Python CLI via `uv` Directly
+
+```bash
+uv run --group test python -m etl.main pyspark-example \
+  --datalake_path "file:///tmp/pyspark-out" \
+  --src_path "example/test.csv" \
+  --target_path "/tmp/pyspark-out" \
+  --hive_db "example_db" \
+  --hive_table "example_table"
+```
+
+### Using `spark-submit`
+
+```bash
+spark-submit \
+  --master "local[*]" \
+  src/etl/main.py pyspark-example \
+  --datalake_path "file:///tmp/pyspark-out" \
+  --src_path "example/test.csv" \
+  --target_path "/tmp/pyspark-out" \
+  --hive_db "example_db" \
+  --hive_table "example_table"
+```
+
+### Dataproc Serverless Execution Example
+
+For managed execution on Google Cloud Dataproc Serverless:
+
+```bash
+gcloud dataproc batches submit pyspark \
+  --project="your-gcp-project-id" \
+  --region="us-central1" \
+  --batch="pyspark-example-$(date +%s)" \
+  --py-files="gs://your-bucket/etl-dist.zip" \
+  gs://your-bucket/src/etl/main.py \
+  -- \
+  pyspark-example \
+  --datalake_path="gs://your-bucket/datalake" \
+  --src_path="gs://your-bucket/input/test.csv" \
+  --target_path="gs://your-bucket/output/test.parquet" \
+  --hive_db="analytics_db" \
+  --hive_table="analytics_table"
+```
+
+---
+
+## Running & Debugging in IDEs
+
+### VS Code
+1. Open the repository root in VS Code.
+2. Select the Python interpreter located in `.venv/bin/python`.
+3. In `.vscode/settings.json`, set:
+   ```json
+   {
+     "python.testing.pytestArgs": ["tests"],
+     "python.testing.pytestEnabled": true
+   }
+   ```
+
+### PyCharm / IntelliJ IDEA
+1. Open the `pyspark-example` folder.
+2. Configure Python Interpreter -> **Existing Environment** -> `.venv/bin/python`.
+3. If running tests or `main.py` directly, ensure `JAVA_HOME` is set to JDK 21.
+
+---
+
+## Troubleshooting & Common Errors
+
+### 1. `ModuleNotFoundError: No module named 'pyspark'`
+- **Cause**: PySpark was not installed into the active virtual environment.
+- **Fix**: Run using `uv run --group test pytest` or execute `uv sync --group test`.
+
+### 2. `IllegalAccessException: module java.base does not open java.lang to unnamed module`
+- **Cause**: Strong module encapsulation in Java 17/21 prevents reflective access to internal JDK packages.
+- **Fix**: Set `JAVA_OPTS` or `SPARK_SUBMIT_OPTS` to include:
+  ```bash
+  export SPARK_SUBMIT_OPTS="--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+  ```
+
+### 3. `ERROR XSDB6: Another instance of Derby may have already booted the database`
+- **Cause**: Embedded Derby metastore file lock conflict.
+- **Fix**:
+  - Remove stale local locks: `rm -rf metastore_db/ derby.log spark-warehouse/`
+  - Or switch to the [Remote Derby Network Server setup](#hive-metastore-with-remote-derby-setup) using [`conf/core-site.xml.template`](conf/core-site.xml.template).
+
+### 4. Windows `Could not locate executable null\bin\winutils.exe`
+- **Cause**: Missing Windows Hadoop native helper binaries.
+- **Fix**: Download `winutils.exe` and `hadoop.dll` from [cdarlint/winutils](https://github.com/cdarlint/winutils) and place them in `%HADOOP_HOME%\bin`.
+
+---
+
+## Project Structure
+
+```text
+pyspark-example/
+├── .editorconfig               # Cross-editor indentation and line-ending rules
+├── .gitignore                  # Git ignore rules for Python, Spark, and IDEs
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # GitHub Actions CI workflow (Python 3.12 / Java 21)
+├── conf/
+│   ├── core-site.xml.template  # Sample configuration for remote Derby Hive Metastore
+│   └── spark-defaults.conf.template # Sample Spark & Delta Lake default properties
+├── resources/
+│   ├── core-site.xml           # Local configuration for Derby Network Metastore
+│   ├── spark-defaults.conf     # Local Spark configuration defaults
+│   ├── createdb.txt            # Instructions for Derby database creation via ij
+│   ├── derby_ij_script.txt     # Script to execute Hive schema DDL in Derby
+│   └── derby_hive_3.2.0.sql    # Complete Hive 3.2.0 DDL schema for Derby
+├── example/
+│   └── test.csv                # Sample input data for local testing
+├── src/
+│   └── etl/
+│       ├── __init__.py
+│       ├── main.py             # CLI entry point using Click
+│       └── jobs/
+│           ├── __init__.py
+│           └── example_job.py  # ETL business logic (CSV, DataFrame transforms, Hive save)
+├── tests/
+│   └── etl/
+│       ├── conftest.py         # Pytest fixtures and shared SparkSession configuration
+│       └── test_etl.py         # Unit tests covering API transforms, SQL, and Hive
+├── CONTRIBUTING.md             # Contribution guidelines
+├── LICENSE                     # Apache License 2.0
+├── Makefile                    # Build, test, and clean automation
+├── README.md                   # Project documentation
+├── pyproject.toml              # PEP 621 project configuration and dependencies
+├── run.sh                      # Execution script for Linux / macOS
+└── run.bat                     # Execution script for Windows
+```
+
+---
+
+## Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/zzhu8192/pyspark-example/issues). Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+---
+
+## License
+
+This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.
