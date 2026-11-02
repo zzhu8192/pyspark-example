@@ -1,6 +1,5 @@
 # PySpark 4.x Example Project
 
-[![CI](https://github.com/zzhu8192/pyspark-example/actions/workflows/ci.yml/badge.svg)](https://github.com/zzhu8192/pyspark-example/actions/workflows/ci.yml)
 [![Python 3.12](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![PySpark 4.2.x](https://img.shields.io/badge/PySpark-4.2.x-orange.svg)](https://spark.apache.org/)
 [![Delta Lake 4.2.0+](https://img.shields.io/badge/Delta%20Lake-4.2.0%2B-00ADD8.svg)](https://delta.io/)
@@ -404,9 +403,6 @@ gcloud dataproc batches submit pyspark \
 pyspark-example/
 ├── .editorconfig               # Cross-editor indentation and line-ending rules
 ├── .gitignore                  # Git ignore rules for Python, Spark, and IDEs
-├── .github/
-│   └── workflows/
-│       └── ci.yml              # GitHub Actions CI workflow (Python 3.12 / Java 21)
 ├── conf/
 │   ├── core-site.xml.template  # Sample configuration for remote Derby Hive Metastore
 │   └── spark-defaults.conf.template # Sample Spark & Delta Lake default properties
